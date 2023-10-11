@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        #color-preview {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>CMYK to RGB and HLS Color Converter</h1>
+    <div>
+        <label for="c">C (Cyan):</label>
+        <input type="number" id="c" min="0" max="100" value="0" onchange="convertColor()">
+    </div>
+    <div>
+        <label for="m">M (Magenta):</label>
+        <input type="number" id="m" min="0" max="100" value="0" onchange="convertColor()">
+    </div>
+    <div>
+        <label for="y">Y (Yellow):</label>
+        <input type="number" id="y" min="0" max="100" value="0" onchange="convertColor()">
+    </div>
+    <div>
+        <label for="k">K (Key/Black):</label>
+        <input type="number" id="k" min="0" max="100" value="0" onchange="convertColor()">
+    </div>
+    <div>
+        <h2>RGB:</h2>
+        <div id="rgb"></div>
+    </div>
+    <div>
+        <h2>HLS:</h2>
+        <div id="hls"></div>
+    </div>
+    <div>
+        <h2>Color Preview:</h2>
+        <div id="color-preview"></div>
+    </div>
+</div>
+
+<script>
+    function convertColor() {
+        const c = parseInt(document.getElementById('c').value);
+        const m = parseInt(document.getElementById('m').value);
+        const y = parseInt(document.getElementById('y').value);
+        const k = parseInt(document.getElementById('k').value);
+
+        // Convert CMYK to RGB
+        const r = 255 * (1 - c / 100) * (1 - k / 100);
+        const g = 255 * (1 - m / 100) * (1 - k / 100);
+        const b = 255 * (1 - y / 100) * (1 - k / 100);
+
+        // Display RGB values
+        document.getElementById('rgb').textContent = `R: ${Math.round(r)}, G: ${Math.round(g)}, B: ${Math.round(b)}`;
+
+        // Convert RGB to HLS
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const lightness = (max + min) / 2;
+        let hue, saturation;
+
+        if (max === min) {
+            hue = 0;
+            saturation = 0;
+        } else {
+            const d = max - min;
+            saturation = lightness > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+            switch (max) {
+                case r:
+                    hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+                    break;
+                case g:
+                    hue = ((b - r) / d + 2) * 60;
+                    break;
+                case b:
+                    hue = ((r - g) / d + 4) * 60;
+                    break;
+            }
+        }
+
+        // Display HLS values
+        document.getElementById('hls').textContent = `H: ${Math.round(hue)}°, L: ${Math.round(lightness)}%, S: ${Math.round(
+            saturation * 100
+        )}%`;
+
+        // Update color preview
+        document.getElementById('color-preview').style.backgroundColor = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+    }
+
+    // Initialize with default values
+    convertColor();
+</script>
+</body>
+</html>
