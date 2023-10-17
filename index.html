@@ -24,23 +24,71 @@
 </head>
 <body>
 <div class="container">
-    <h1>CMYK to RGB and HLS Color Converter</h1>
+    <h1>Color Converter</h1>
+
+    <!-- Mode selection -->
     <div>
-        <label for="c">C (Cyan):</label>
-        <input type="number" id="c" min="0" max="100" value="0" onchange="convertColor()">
+        <label for="mode">Select Mode:</label>
+        <select id="mode" onchange="changeColorMode()">
+            <option value="cmyk">CMYK</option>
+            <option value="rgb">RGB</option>
+            <option value="hls">HLS</option>
+        </select>
     </div>
-    <div>
-        <label for="m">M (Magenta):</label>
-        <input type="number" id="m" min="0" max="100" value="0" onchange="convertColor()">
+
+    <!-- CMYK Input Fields -->
+    <div id="cmyk-fields">
+        <div>
+            <label for="c">C (Cyan):</label>
+            <input type="number" id="c" min="0" max="100" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="m">M (Magenta):</label>
+            <input type="number" id="m" min="0" max="100" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="y">Y (Yellow):</label>
+            <input type="number" id="y" min="0" max="100" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="k">K (Key/Black):</label>
+            <input type="number" id="k" min="0" max="100" value="0" onchange="convertColor()">
+        </div>
     </div>
-    <div>
-        <label for="y">Y (Yellow):</label>
-        <input type="number" id="y" min="0" max="100" value="0" onchange="convertColor()">
+
+    <!-- RGB Input Fields -->
+    <div id="rgb-fields" style="display: none;">
+        <div>
+            <label for="r">R (Red):</label>
+            <input type="number" id="r" min="0" max="255" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="g">G (Green):</label>
+            <input type="number" id="g" min="0" max="255" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="b">B (Blue):</label>
+            <input type="number" id="b" min="0" max="255" value="0" onchange="convertColor()">
+        </div>
     </div>
-    <div>
-        <label for="k">K (Key/Black):</label>
-        <input type="number" id="k" min="0" max="100" value="0" onchange="convertColor()">
+
+    <!-- HLS Input Fields -->
+    <div id="hls-fields" style="display: none;">
+        <div>
+            <label for="h">H (Hue):</label>
+            <input type="number" id="h" min="0" max="360" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="l">L (Lightness):</label>
+            <input type="number" id="l" min="0" max="100" value="0" onchange="convertColor()">
+        </div>
+        <div>
+            <label for="s">S (Saturation):</label>
+            <input type="number" id="s" min="0" max="100" value="0" onchange="convertColor()">
+        </div>
     </div>
+
+    <!-- Color Results -->
     <div>
         <h2>RGB:</h2>
         <div id="rgb"></div>
@@ -56,57 +104,56 @@
 </div>
 
 <script>
+    function changeColorMode() {
+        const mode = document.getElementById('mode').value;
+        const cmykFields = document.getElementById('cmyk-fields');
+        const rgbFields = document.getElementById('rgb-fields');
+        const hlsFields = document.getElementById('hls-fields');
+
+        if (mode === 'cmyk') {
+            cmykFields.style.display = 'block';
+            rgbFields.style.display = 'none';
+            hlsFields.style.display = 'none';
+        } else if (mode === 'rgb') {
+            cmykFields.style.display = 'none';
+            rgbFields.style.display = 'block';
+            hlsFields.style.display = 'none';
+        } else if (mode === 'hls') {
+            cmykFields.style.display = 'none';
+            rgbFields.style.display = 'none';
+            hlsFields.style.display = 'block';
+        }
+        convertColor();
+    }
+
     function convertColor() {
-        const c = parseInt(document.getElementById('c').value);
-        const m = parseInt(document.getElementById('m').value);
-        const y = parseInt(document.getElementById('y').value);
-        const k = parseInt(document.getElementById('k').value);
+        const mode = document.getElementById('mode').value;
+        let colorValues = {};
 
-        // Convert CMYK to RGB
-        const r = 255 * (1 - c / 100) * (1 - k / 100);
-        const g = 255 * (1 - m / 100) * (1 - k / 100);
-        const b = 255 * (1 - y / 100) * (1 - k / 100);
-
-        // Display RGB values
-        document.getElementById('rgb').textContent = `R: ${Math.round(r)}, G: ${Math.round(g)}, B: ${Math.round(b)}`;
-
-        // Convert RGB to HLS
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const lightness = (max + min) / 2;
-        let hue, saturation;
-
-        if (max === min) {
-            hue = 0;
-            saturation = 0;
-        } else {
-            const d = max - min;
-            saturation = lightness > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-            switch (max) {
-                case r:
-                    hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
-                    break;
-                case g:
-                    hue = ((b - r) / d + 2) * 60;
-                    break;
-                case b:
-                    hue = ((r - g) / d + 4) * 60;
-                    break;
-            }
+        if (mode === 'cmyk') {
+            colorValues.c = parseFloat(document.getElementById('c').value);
+            colorValues.m = parseFloat(document.getElementById('m').value);
+            colorValues.y = parseFloat(document.getElementById('y').value);
+            colorValues.k = parseFloat(document.getElementById('k').value);
+        } else if (mode === 'rgb') {
+            colorValues.r = parseFloat(document.getElementById('r').value);
+            colorValues.g = parseFloat(document.getElementById('g').value);
+            colorValues.b = parseFloat(document.getElementById('b').value);
+        } else if (mode === 'hls') {
+            colorValues.h = parseFloat(document.getElementById('h').value);
+            colorValues.l = parseFloat(document.getElementById('l').value);
+            colorValues.s = parseFloat(document.getElementById('s').value);
         }
 
-        // Display HLS values
-        document.getElementById('hls').textContent = `H: ${Math.round(hue)}°, L: ${Math.round(lightness)}%, S: ${Math.round(
-            saturation * 100
-        )}%`;
+        // Perform the color conversion here based on the selected mode
+        // Update RGB, HLS, and color preview
 
-        // Update color preview
-        document.getElementById('color-preview').style.backgroundColor = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+        // Example: Update color preview for demonstration
+        document.getElementById('color-preview').style.backgroundColor = `rgb(${colorValues.r || 0}, ${colorValues.g || 0}, ${colorValues.b || 0})`;
     }
 
     // Initialize with default values
-    convertColor();
+    changeColorMode();
 </script>
 </body>
 </html>
