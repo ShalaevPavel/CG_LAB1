@@ -1,29 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" type="text/css" href="styles.css">
-</head>
-<body>
-<div class="color-picker">
-    <input type="text" id="hex-input" placeholder="Введите HEX цвет">
-    <input type="color" id="color-picker">
-</div>
-
-<div class="sliders">
-    <label for="cmyk-slider">CMYK:</label>
-    <input type="range" id="cmyk-slider" min="0" max="100" step="1">
-    <div id="cmyk-values">C: 0, M: 0, Y: 0, K: 0</div>
-
-    <label for="rgb-slider">RGB:</label>
-    <input type="range" id="rgb-slider" min="0" max="255" step="1">
-    <div id="rgb-values">R: 0, G: 0, B: 0</div>
-
-    <label for="hls-slider">HLS:</label>
-    <input type="range" id="hls-slider" min="0" max="360" step="1">
-    <div id="hls-values">H: 0, L: 0, S: 0</div>
-</div>
-
-<script >const hexInput = document.getElementById('hex-input');
+const hexInput = document.getElementById('hex-input');
 const colorPicker = document.getElementById('color-picker');
 const cmykSlider = document.getElementById('cmyk-slider');
 const cmykValues = document.getElementById('cmyk-values');
@@ -191,6 +166,3 @@ function updateColorFromHLS() {
     // Обновляем HEX
     hexInput.value = rgbToHex(rgb[0], rgb[1], rgb[2]);
 }
-</script>
-</body>
-</html>
