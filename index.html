@@ -1,196 +1,125 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+        .color-picker {
+            display: flex;
+            align-items: center;
+        }
+
+        .sliders {
+            margin-top: 20px;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+        }
+    </style>
 </head>
 <body>
 <div class="color-picker">
-    <input type="text" id="hex-input" placeholder="Введите HEX цвет">
     <input type="color" id="color-picker">
 </div>
 
 <div class="sliders">
-    <label for="cmyk-slider">CMYK:</label>
-    <input type="range" id="cmyk-slider" min="0" max="100" step="1">
+<!--    <label for="cmyk-slider">CMYK:</label>-->
+    <input type="range" id="cmyk-c-slider" min="0" max="100" step="1">
+    <input type="range" id="cmyk-m-slider" min="0" max="100" step="1">
+    <input type="range" id="cmyk-y-slider" min="0" max="100" step="1">
+    <input type="range" id="cmyk-k-slider" min="0" max="100" step="1">
     <div id="cmyk-values">C: 0, M: 0, Y: 0, K: 0</div>
-
-    <label for="rgb-slider">RGB:</label>
-    <input type="range" id="rgb-slider" min="0" max="255" step="1">
-    <div id="rgb-values">R: 0, G: 0, B: 0</div>
-
-    <label for="hls-slider">HLS:</label>
-    <input type="range" id="hls-slider" min="0" max="360" step="1">
-    <div id="hls-values">H: 0, L: 0, S: 0</div>
 </div>
 
-<script >const hexInput = document.getElementById('hex-input');
-const colorPicker = document.getElementById('color-picker');
-const cmykSlider = document.getElementById('cmyk-slider');
-const cmykValues = document.getElementById('cmyk-values');
-const rgbSlider = document.getElementById('rgb-slider');
-const rgbValues = document.getElementById('rgb-values');
-const hlsSlider = document.getElementById('hls-slider');
-const hlsValues = document.getElementById('hls-values');
+<script>
+    const colorPicker = document.getElementById('color-picker');
+    const cmykSliderC = document.getElementById('cmyk-c-slider');
+    const cmykSliderM = document.getElementById('cmyk-m-slider');
+    const cmykSliderY = document.getElementById('cmyk-y-slider');
+    const cmykSliderK = document.getElementById('cmyk-k-slider');
+    const cmykValues = document.getElementById('cmyk-values');
 
-colorPicker.addEventListener('input', updateColorFromPicker);
-cmykSlider.addEventListener('input', updateColorFromCMYK);
-rgbSlider.addEventListener('input', updateColorFromRGB);
-hlsSlider.addEventListener('input', updateColorFromHLS);
-// Преобразование RGB в HLS
-function rgbToHsl(r, g, b) {
-    r /= 255;
-    g /= 255;
-    b /= 255;
+    colorPicker.addEventListener('input', updateColorFromPicker);
+    cmykSliderC.addEventListener('input', updateColorFromCMYK);
+    cmykSliderM.addEventListener('input', updateColorFromCMYK);
+    cmykSliderY.addEventListener('input', updateColorFromCMYK);
+    cmykSliderK.addEventListener('input', updateColorFromCMYK);
 
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
+    function updateColorFromPicker() {
+        const selectedColor = colorPicker.value;
+        const rgbColor = hexToRgb(selectedColor);
 
-    let h, s, l = (max + min) / 2;
+        cmykSliderC.value = 0;
+        cmykSliderM.value = 0;
+        cmykSliderY.value = 0;
+        cmykSliderK.value = 0;
+        cmykValues.textContent = "C: 0, M: 0, Y: 0, K: 0";
 
-    if (max === min) {
-        h = s = 0; // оттенок, насыщенность и яркость равны
-    } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r:
-                h = (g - b) / d + (g < b ? 6 : 0);
-                break;
-            case g:
-                h = (b - r) / d + 2;
-                break;
-            case b:
-                h = (r - g) / d + 4;
-                break;
+        // Рассчитываем CMYK
+        const cmykColor = rgbToCmyk(rgbColor.r, rgbColor.g, rgbColor.b);
+
+        // Обновляем значения CMYK
+        cmykSliderC.value = cmykColor.c;
+        cmykSliderM.value = cmykColor.m;
+        cmykSliderY.value = cmykColor.y;
+        cmykSliderK.value = cmykColor.k;
+        cmykValues.textContent = `C: ${cmykColor.c}, M: ${cmykColor.m}, Y: ${cmykColor.y}, K: ${cmykColor.k}`;
+    }
+
+    function updateColorFromCMYK() {
+        const c = parseFloat(cmykSliderC.value);
+        const m = parseFloat(cmykSliderM.value);
+        const y = parseFloat(cmykSliderY.value);
+        const k = parseFloat(cmykSliderK.value);
+
+        // Рассчитываем RGB
+        const rgbColor = cmykToRgb(c, m, y, k);
+
+        // Обновляем значения RGB
+        colorPicker.value = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
+
+        // Обновляем значения RGB
+        cmykSliderC.value = c;
+        cmykSliderM.value = m;
+        cmykSliderY.value = y;
+        cmykSliderK.value = k;
+        cmykValues.textContent = `C: ${c}, M: ${m}, Y: ${y}, K: ${k}`;
+    }
+
+    function hexToRgb(hex) {
+        hex = hex.replace(/^#/, '');
+        const bigint = parseInt(hex, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return { r, g, b };
+    }
+
+    function rgbToCmyk(r, g, b) {
+        let c = 1 - r / 255;
+        let m = 1 - g / 255;
+        let y = 1 - b / 255;
+        let k = Math.min(c, m, y);
+        if (k === 1) {
+            return { c: 0, m: 0, y: 0, k: 100 };
         }
-        h /= 6;
+        c = (c - k) / (1 - k) * 100;
+        m = (m - k) / (1 - k) * 100;
+        y = (y - k) / (1 - k) * 100;
+        k = k * 100;
+        return { c, m, y, k };
     }
 
-    // Преобразование в угол и проценты
-    h = Math.round(h * 360);
-    s = Math.round(s * 100);
-    l = Math.round(l * 100);
-
-    return [h, s, l];
-}
-
-// Преобразование HLS в RGB
-function hslToRgb(h, s, l) {
-    h /= 360;
-    s /= 100;
-    l /= 100;
-
-    let r, g, b;
-
-    if (s === 0) {
-        r = g = b = l; // оттенок = серому
-    } else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-
-        r = hue2rgb(p, q, h + 1 / 3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1 / 3);
+    function cmykToRgb(c, m, y, k) {
+        const r = 255 * (1 - c / 100) * (1 - k / 100);
+        const g = 255 * (1 - m / 100) * (1 - k / 100);
+        const b = 255 * (1 - y / 100) * (1 - k / 100);
+        return { r, g, b };
     }
 
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
-
-// Преобразование RGB в HEX
-function rgbToHex(r, g, b) {
-    const toHex = (c) => {
-        const hex = c.toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    };
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-function updateColorFromCMYK() {
-    const c = parseFloat(cmykSlider.value);
-    const m = parseFloat(cmykSlider.value);
-    const y = parseFloat(cmykSlider.value);
-    const k = parseFloat(cmykSlider.value);
-
-    // Рассчитываем RGB
-    const r = Math.round(255 * (1 - c / 100) * (1 - k / 100));
-    const g = Math.round(255 * (1 - m / 100) * (1 - k / 100));
-    const b = Math.round(255 * (1 - y / 100) * (1 - k / 100));
-
-    // Обновляем значения RGB
-    rgbSlider.value = r;
-    rgbValues.textContent = `R: ${r}, G: ${g}, B: ${b}`;
-
-    // Рассчитываем HLS
-    const hsl = rgbToHsl(r, g, b);
-
-    // Обновляем значения HLS
-    hlsSlider.value = hsl[0];
-    hlsValues.textContent = `H: ${hsl[0]}, L: ${hsl[1]}, S: ${hsl[2]}`;
-
-    // Обновляем HEX
-    hexInput.value = rgbToHex(r, g, b);
-}
-
-function updateColorFromRGB() {
-    const r = parseInt(rgbSlider.value);
-    const g = parseInt(rgbSlider.value);
-    const b = parseInt(rgbSlider.value);
-
-    // Рассчитываем CMYK
-    const k = Math.min(1 - r / 255, 1 - g / 255, 1 - b / 255);
-    const c = Math.round((1 - r / 255 - k) / (1 - k) * 100);
-    const m = Math.round((1 - g / 255 - k) / (1 - k) * 100);
-    const y = Math.round((1 - b / 255 - k) / (1 - k) * 100);
-
-    // Обновляем значения CMYK
-    cmykSlider.value = c;
-    cmykValues.textContent = `C: ${c}, M: ${m}, Y: ${y}, K: ${Math.round(k * 100)}`;
-
-    // Рассчитываем HLS
-    const hsl = rgbToHsl(r, g, b);
-
-    // Обновляем значения HLS
-    hlsSlider.value = hsl[0];
-    hlsValues.textContent = `H: ${hsl[0]}, L: ${hsl[1]}, S: ${hsl[2]}`;
-
-    // Обновляем HEX
-    hexInput.value = rgbToHex(r, g, b);
-}
-
-function updateColorFromHLS() {
-    const h = parseInt(hlsSlider.value);
-    const l = parseInt(hlsSlider.value);
-    const s = parseInt(hlsSlider.value);
-
-    // Рассчитываем RGB
-    const rgb = hslToRgb(h, s / 100, l / 100);
-
-    // Обновляем значения RGB
-    rgbSlider.value = rgb[0];
-    rgbValues.textContent = `R: ${rgb[0]}, G: ${rgb[1]}, B: ${rgb[2]}`;
-
-    // Рассчитываем CMYK
-    const k = Math.min(1 - rgb[0] / 255, 1 - rgb[1] / 255, 1 - rgb[2] / 255);
-    const c = Math.round((1 - rgb[0] / 255 - k) / (1 - k) * 100);
-    const m = Math.round((1 - rgb[1] / 255 - k) / (1 - k) * 100);
-    const y = Math.round((1 - rgb[2] / 255 - k) / (1 - k) * 100);
-
-    // Обновляем значения CMYK
-    cmykSlider.value = c;
-    cmykValues.textContent = `C: ${c}, M: ${m}, Y: ${y}, K: ${Math.round(k * 100)}`;
-
-    // Обновляем HEX
-    hexInput.value = rgbToHex(rgb[0], rgb[1], rgb[2]);
-}
+    function rgbToHex(r, g, b) {
+        return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+    }
 </script>
 </body>
 </html>
